@@ -1,11 +1,17 @@
 from dotenv import load_dotenv
 import anthropic
 import requests
+import pdfplumber
 from bs4 import BeautifulSoup
 
 load_dotenv()
 
 client = anthropic.Anthropic()
+
+def extract_text_from_pdf(file):
+    with pdfplumber.open(file) as pdf:
+        pages_text = [page.extract_text() for page in pdf.pages if page.extract_text()]
+    return "\n".join(pages_text)
 
 def extract_text_from_url(url):
     response = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
