@@ -11,14 +11,20 @@ article_text = None
 if input_method == "URL":
     url = st.text_input("Article URL")
     if st.button("Summarize") and url:
-        with st.spinner("Fetching and summarizing..."):
-            article_text = extract_text_from_url(url)
-            result = summarize(article_text)
-        st.write(result)
+        try:
+            with st.spinner("Fetching and summarizing..."):
+                article_text = extract_text_from_url(url)
+                result = summarize(article_text)
+            st.write(result)
+        except ValueError as e:
+            st.error(str(e))
 else:
     uploaded_file = st.file_uploader("Upload a PDF", type="pdf")
     if st.button("Summarize") and uploaded_file:
-        with st.spinner("Reading and summarizing..."):
-            article_text = extract_text_from_pdf(uploaded_file)
-            result = summarize(article_text)
-        st.write(result)
+        try:
+            with st.spinner("Reading and summarizing..."):
+                article_text = extract_text_from_pdf(uploaded_file)
+                result = summarize(article_text)
+            st.write(result)
+        except ValueError as e:
+            st.error(str(e))
