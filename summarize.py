@@ -1,13 +1,9 @@
-from dotenv import load_dotenv
 import anthropic
 import requests
 import pdfplumber
 import json
 from bs4 import BeautifulSoup
 
-load_dotenv()
-
-client = anthropic.Anthropic()
 
 def extract_text_from_pdf(file):
     try:
@@ -43,7 +39,9 @@ def extract_text_from_url(url):
 
     return text.strip()
 
-def summarize(text):
+def summarize(text, api_key):
+    client = anthropic.Anthropic(api_key=api_key)
+
     prompt = f"""Read the following text and respond with ONLY a JSON object (no other text, no markdown formatting) with this exact structure:
 
 {{
@@ -66,7 +64,14 @@ Text:
         ]
     )
     
-    raw_output = response.content[0].text
+    if response.stop_reason == "refusal":
+        raise ValueError("Claude declined to summarize this content.")
+
+    text_block = next((block for block in response.content if block.type == "text"), None)
+    if text_block is None:
+        raise ValueError("Received an unexpected response from Claude.")
+
+    raw_output = text_block.text
     if raw_output.startswith("```"):
         raw_output = raw_output.split("```")[1]
         if raw_output.startswith("json"):
