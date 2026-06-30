@@ -15,7 +15,14 @@ if input_method == "URL":
             with st.spinner("Fetching and summarizing..."):
                 article_text = extract_text_from_url(url)
                 result = summarize(article_text)
-            st.write(result)
+            st.subheader("Summary")
+            st.write(result["summary"])
+
+            if result["jargon"]:
+                st.subheader("Key Terms")
+                for item in result["jargon"]:
+                    st.markdown(f"**{item['term']}** - {item['explanation']}")
+                
         except ValueError as e:
             st.error(str(e))
 else:
@@ -25,6 +32,12 @@ else:
             with st.spinner("Reading and summarizing..."):
                 article_text = extract_text_from_pdf(uploaded_file)
                 result = summarize(article_text)
-            st.write(result)
+            st.subheader("Summary")
+            st.write(result["summary"])
+
+            if result["jargon"]:
+                st.subheader("Key Terms")
+                for item in result["jargon"]:
+                    st.markdown(f"**{item['term']}** - {item['explanation']}")
         except ValueError as e:
             st.error(str(e))

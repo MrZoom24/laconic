@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 import anthropic
 import requests
 import pdfplumber
+import json
 from bs4 import BeautifulSoup
 
 load_dotenv()
@@ -43,12 +44,33 @@ def extract_text_from_url(url):
     return text.strip()
 
 def summarize(text):
+    prompt = f"""Read the following text and respond with ONLY a JSON object (no other text, no markdown formatting) with this exact structure:
+
+{{
+  "summary": "a concise 3-4 sentence summary, in same language as original text",
+  "jargon": [
+    {{"term": "technical term", "explanation": "plain-language explanation"}}
+  ]
+}}
+
+Include up to 5 jargon terms a general reader might not know. If there are none, return an empty list for "jargon".
+
+Text:
+{text}
+"""
     response = client.messages.create(
         model="claude-sonnet-4-6",
-        max_tokens=300,
+        max_tokens=1500,
         messages=[
-            {"role": "user", "content": f"Summarize this in 2 sentences:\n\n{text}"}
+            {"role": "user", "content": prompt}
         ]
     )
+    
+    raw_output = response.content[0].text
+    if raw_output.startswith("```"):
+        raw_output = raw_output.split("```")[1]
+        if raw_output.startswith("json"):
+            raw_output = raw_output[4:]
+        raw_output = raw_output.strip()
 
-    return response.content[0].text
+    return json.loads(raw_output)
